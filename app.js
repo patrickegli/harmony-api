@@ -11,7 +11,6 @@ var parameterize = require('parameterize')
 var config_dir = process.env.CONFIG_DIR || './config'
 var config = require(config_dir + '/config.json');
 
-var harmonyHubDiscover = require('harmonyhubjs-discover')
 var harmony = require('harmonyhubjs-client')
 
 var harmonyHubClients = {}
@@ -43,6 +42,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 var logFormat = "'[:date[iso]] - :remote-addr - :method :url :status :response-time ms - :res[content-length]b'"
 app.use(morgan(logFormat))
 
+harmony(config.defaultHarmonyHubIp).then(function(client){
+    startProcessing(parameterize('default'), client);
+});
+
 // Middleware
 // Check to make sure we have a harmonyHubClient to connect to
 var hasHarmonyHubClient = function(req, res, next) {
@@ -52,39 +55,7 @@ var hasHarmonyHubClient = function(req, res, next) {
     res.status(500).json({message: "No hubs available."})
   }
 }
-app.use(hasHarmonyHubClient)
-
-
-var discover = new harmonyHubDiscover(61991)
-
-discover.on('online', function(hubInfo) {
-  // Triggered when a new hub was found
-  console.log('Hub discovered: ' + hubInfo.friendlyName + ' at ' + hubInfo.ip + '.')
-
-  if (hubInfo.ip) {
-    harmony(hubInfo.ip).then(function(client){
-      startProcessing(parameterize(hubInfo.friendlyName), client)
-    })
-  }
-
-})
-
-discover.on('offline', function(hubInfo) {
-  // Triggered when a hub disappeared
-  console.log('Hub lost: ' + hubInfo.friendlyName + ' at ' + hubInfo.ip + '.')
-  if (!hubInfo.friendlyName) { return }
-  hubSlug = parameterize(hubInfo.friendlyName)
-
-  clearInterval(harmonyStateUpdateTimers[hubSlug])
-  clearInterval(harmonyActivityUpdateTimers[hubSlug])
-  delete(harmonyHubClients[hubSlug])
-  delete(harmonyActivitiesCache[hubSlug])
-  delete(harmonyHubStates[hubSlug])
-})
-
-// Look for hubs:
-console.log('Starting discovery.')
-discover.start()
+app.use(hasHarmonyHubClient);
 
 // mqtt api
 

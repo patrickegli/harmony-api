@@ -57,11 +57,13 @@ activity is.
 
 ## Settings
 
-Harmony API discovers your hubs automatically. You can optionally add your MQTT
+This version of harmony API connects to a preconfigured IP, no auto-discover is enabled. You can optionally add your MQTT
 broker's host to connect to it.
 
 ```json
 {
+  "enableHTTPserver": true,
+  "defaultHarmonyHubIp": "192.168.0.15",
   "mqtt_host": "mqtt://192.168.1.106",
   "mqtt_options": {
       "port": 1883,
