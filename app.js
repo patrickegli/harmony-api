@@ -5,6 +5,7 @@ var mqtt = require('mqtt');
 var express = require('express')
 var morgan = require('morgan')
 var bodyParser = require('body-parser')
+var cors = require('cors');
 var parameterize = require('parameterize')
 
 var config_dir = process.env.CONFIG_DIR || './config'
@@ -34,8 +35,9 @@ var TOPIC_NAMESPACE = config.topic_namespace || "harmony-api";
 var enableHTTPserver = config.hasOwnProperty("enableHTTPserver") ?
     config.enableHTTPserver : true;
 
-var app = express()
-app.use(bodyParser.urlencoded({ extended: false }))
+var app = express();
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 var logFormat = "'[:date[iso]] - :remote-addr - :method :url :status :response-time ms - :res[content-length]b'"
